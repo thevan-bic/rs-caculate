@@ -1,3 +1,4 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
 use ethers::abi::Abi;
 use ethers::prelude::*;
 use ethers::utils::{keccak256, get_create2_address};
@@ -7,6 +8,8 @@ use std::{env, fs::File, io::BufReader, sync::Arc};
 use std::error::Error;
 use hex::FromHex;
 use rayon::prelude::*;
+// use rand::rngs::StdRng;
+// use rand::{Rng, SeedableRng};
 
 // Struct to represent the contract JSON file format
 #[derive(Deserialize)]
@@ -14,6 +17,22 @@ struct ContractJson {
     abi: serde_json::Value,
     bytecode: String,
 }
+
+// // Atomic counter to ensure unique salts across threads
+// static SALT_COUNTER: AtomicUsize = AtomicUsize::new(0);
+// 
+// fn generate_unique_salt() -> [u8; 32] {
+//     // Get a unique counter value
+//     let counter = SALT_COUNTER.fetch_add(1, Ordering::SeqCst);
+// 
+//     // Initialize a seeded RNG with the counter value for determinism and uniqueness
+//     let mut rng = StdRng::seed_from_u64(counter as u64);
+// 
+//     // Generate 32 bytes for the salt
+//     let mut salt = [0u8; 32];
+//     rng.fill(&mut salt);
+//     salt
+// }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -61,21 +80,31 @@ async fn main() -> Result<(), Box<dyn Error>> {
     (0..usize::MAX).into_par_iter().find_map_any(|_| {
         // Generate a random salt
         let salt: [u8; 32] = rand::random();
+        
+        // try to not duplicate salt but result not improve calculation speed
+        // let salt: [u8; 32] = generate_unique_salt();
 
-        // let salt_vec = hex::decode("e82e1521b63d9fa2bf5a01708476b9043a50c86741762224e1ae7d1877dac091")
-        //     .expect("Invalid hex string");
-        //
-        // // Convert Vec<u8> to [u8; 32]
-        // let salt: [u8; 32] = salt_vec.try_into().expect("Slice with incorrect length");
-
-        // Compute the address of the new contract
         let computed_address = compute_create2_address(create_call_address, &salt, &bytecode_with_args);
 
         // Check if computed address matches the desired condition
-        if computed_address.to_string().to_lowercase().contains("0xb139") {
+        if computed_address.to_string().to_lowercase().starts_with("0xb139")
+            && computed_address.to_string().to_lowercase().ends_with("b139") {
+            println!("Perfect result!");
             println!("Salt: 0x{}", hex::encode(salt));
             println!("Computed Address: {}", computed_address);
             Some(())
+        } else if computed_address.to_string().to_lowercase().starts_with("0xb139b1c")
+            || (computed_address.to_string().to_lowercase().starts_with("0xb139")
+            && computed_address.to_string().to_lowercase().ends_with("b1c")) {
+            println!("Great result!");
+            println!("Salt: 0x{}", hex::encode(salt));
+            println!("Computed Address: {}", computed_address);
+            None
+        } else if computed_address.to_string().to_lowercase().starts_with("0xb139") {
+            println!("Good result!");
+            println!("Salt: 0x{}", hex::encode(salt));
+            println!("Computed Address: {}", computed_address);
+            None
         } else {
             None
         }
