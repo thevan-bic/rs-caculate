@@ -89,19 +89,36 @@ async fn main() -> Result<(), Box<dyn Error>> {
         // Check if computed address matches the desired condition
         if computed_address.to_string().to_lowercase().starts_with("0xb139")
             && computed_address.to_string().to_lowercase().ends_with("b139") {
+            println!("-");
+            println!("-");
+            println!("-");
             println!("Perfect result!");
             println!("Salt: 0x{}", hex::encode(salt));
             println!("Computed Address: {}", computed_address);
             Some(())
-        } else if computed_address.to_string().to_lowercase().starts_with("0xb139b1c")
-            || (computed_address.to_string().to_lowercase().starts_with("0xb139")
-            && computed_address.to_string().to_lowercase().ends_with("b1c")) {
+        } else if computed_address.to_string().to_lowercase().starts_with("0xb139")
+            && (computed_address.to_string().to_lowercase().ends_with("139")
+            || computed_address.to_string().to_lowercase().ends_with("668")
+            || computed_address.to_string().to_lowercase().ends_with("688")
+            || computed_address.to_string().to_lowercase().ends_with("888")) {
+            println!("-");
+            println!("-");
+            println!("Excellent result!");
+            println!("Salt: 0x{}", hex::encode(salt));
+            println!("Computed Address: {}", computed_address);
+            None
+        } else if computed_address.to_string().to_lowercase().starts_with("0xb139")
+            && (computed_address.to_string().to_lowercase().ends_with("39")
+            || computed_address.to_string().to_lowercase().ends_with("79")
+            || computed_address.to_string().to_lowercase().ends_with("68")
+            || computed_address.to_string().to_lowercase().ends_with("88")) {
+            println!("-");
             println!("Great result!");
             println!("Salt: 0x{}", hex::encode(salt));
             println!("Computed Address: {}", computed_address);
             None
         } else if computed_address.to_string().to_lowercase().starts_with("0xb139") {
-            println!("Good result!");
+            println!("Fine result!");
             println!("Salt: 0x{}", hex::encode(salt));
             println!("Computed Address: {}", computed_address);
             None
